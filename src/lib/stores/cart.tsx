@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 
+// Antarmuka (interface) untuk item di keranjang
 interface CartItem {
   id: string;
   name: string;
@@ -7,20 +8,18 @@ interface CartItem {
   quantity: number;
 }
 
+// Antarmuka (interface) untuk state keranjang
 interface CartState {
   items: CartItem[];
-  totalItems: () => number;
-  cartTotal: () => number;
   addItem: (item: { id: string; name: string; price: number }) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
 }
 
+// Buat store Zustand
 export const useCartStore = create<CartState>((set, get) => ({
   items: [],
-  totalItems: () => get().items.reduce((total, item) => total + item.quantity, 0),
-  cartTotal: () => get().items.reduce((total, item) => total + (item.price * item.quantity), 0),
   addItem: (item) => set((state) => {
     const existingItem = state.items.find(i => i.id === item.id);
     if (existingItem) {
