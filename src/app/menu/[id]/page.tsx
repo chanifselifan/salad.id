@@ -64,7 +64,7 @@ export default function SaladDetailPage({ params }: SaladDetailPageProps) {
   }
 
   return (
-    <div className="bg-[#F5F5F5] py-12 min-h-screen">
+    <div className="bg-soft-grey py-12 min-h-screen">
       <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Kolom Kiri: Gambar Salad */}
         <div className="flex justify-center items-start">
