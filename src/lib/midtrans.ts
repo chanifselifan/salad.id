@@ -6,41 +6,42 @@ declare global {
   }
 }
 
-export function loadMidtransSnap(clientKey: string) {
-  if (typeof window !== "undefined") {
-    const script = document.createElement("script");
-    script.src = "https://app.midtrans.com/snap/snap.js";
-    script.setAttribute("data-client-key", clientKey);
-    document.body.appendChild(script);
-  }
-}
 
-export function payWithMidtrans(transactionToken: string) {
+export const payWithMidtrans = (transactionToken: string) => {
+  // Pastikan window.snap sudah tersedia sebelum memanggilnya
   if (typeof window !== 'undefined' && window.snap) {
     window.snap.pay(transactionToken, {
       onSuccess: function(result: any){
-        alert("payment success!"); console.log(result);
-        // TODO: Redirect to order confirmation page or update order status
+        // Callback saat pembayaran berhasil
+        console.log('Pembayaran Berhasil:', result);
+        alert('Pembayaran Berhasil! Cek di console log untuk detail.');
+        // TODO: Redirect user to an order success page or update order status in UI
+        // Contoh: router.push('/order-status?status=success&orderId=' + result.order_id);
       },
       onPending: function(result: any){
-        alert("waiting your payment!"); console.log(result);
-        // TODO: Redirect to pending payment page
+        // Callback saat pembayaran tertunda (menunggu pembayaran)
+        console.log('Pembayaran Tertunda:', result);
+        alert('Pembayaran Tertunda! Silakan selesaikan pembayaran.');
+        // TODO: Redirect user to a pending order page
+        // Contoh: router.push('/order-status?status=pending&orderId=' + result.order_id);
       },
       onError: function(result: any){
-        alert("payment failed!"); console.log(result);
-        // TODO: Handle error, maybe show a retry option
+        // Callback saat terjadi error pembayaran
+        console.log('Pembayaran Error:', result);
+        alert('Terjadi error saat pembayaran.');
+        // TODO: Handle error, maybe show a retry option or redirect to error page
       },
       onClose: function(){
-        alert('you closed the popup without finishing the payment');
+        // Callback saat pop-up pembayaran ditutup oleh user tanpa menyelesaikan pembayaran
+        console.log('Pop-up pembayaran ditutup tanpa menyelesaikan pembayaran.');
+        alert('Anda menutup pop-up pembayaran tanpa menyelesaikan transaksi.');
+        // TODO: Inform user, maybe offer to try again
       }
     });
   } else {
-    console.error("Midtrans Snap.js is not loaded.");
-    // Optionally load snap.js dynamically here
-    // const script = document.createElement('script');
-    // script.src = "https://app.sandbox.midtrans.com/snap/snap.js";
-    // script.setAttribute('data-client-key', process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || '');
-    // document.body.appendChild(script);
-    // script.onload = () => payWithMidtrans(transactionToken);
+    // Jika window.snap belum tersedia, ini berarti script belum dimuat.
+    // Ini bisa terjadi jika ada masalah jaringan atau next/script belum selesai memuat.
+    console.error("Midtrans Snap script not loaded or window object is undefined.");
+    alert("Maaf, terjadi kesalahan saat memuat halaman pembayaran. Mohon coba lagi.");
   }
-}
+};
