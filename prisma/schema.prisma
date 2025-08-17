@@ -1,0 +1,156 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"  // Changed from postgresql to sqlite
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  phone         String?
+  address       String?
+  
+  accounts Account[]
+  sessions Session[]
+  orders   Order[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Category {
+  id       String  @id @default(cuid())
+  name     String  @unique
+  slug     String  @unique
+  description String?
+  imageUrl String?
+  salads   Salad[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Salad {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  price       Int       // in rupiah (cents for precision)
+  imageUrl    String?
+  ingredients String    // JSON string for SQLite
+  calories    Int?
+  isVegan     Boolean   @default(false)
+  isGlutenFree Boolean  @default(false)
+  isAvailable Boolean   @default(true)
+  
+  categoryId  String
+  category    Category  @relation(fields: [categoryId], references: [id])
+  
+  orderItems  OrderItem[]
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  orderNumber   String      @unique
+  status        OrderStatus @default(PENDING)
+  totalAmount   Int
+  deliveryFee   Int         @default(10000)
+  
+  userId        String?
+  user          User?       @relation(fields: [userId], references: [id])
+  
+  // Customer info (for guest orders)
+  customerName  String?
+  customerEmail String?
+  customerPhone String?
+  
+  items         OrderItem[]
+  
+  // Delivery details
+  deliveryAddress String?
+  deliveryTime    DateTime?
+  notes          String?
+  
+  // Payment details
+  paymentMethod   String?
+  paymentStatus   PaymentStatus @default(PENDING)
+  midtransToken   String?
+  midtransOrderId String?
+  
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model OrderItem {
+  id       String @id @default(cuid())
+  quantity Int
+  price    Int    // Price at time of order
+  
+  orderId  String
+  order    Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  saladId  String
+  salad    Salad  @relation(fields: [saladId], references: [id])
+  
+  createdAt DateTime @default(now())
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
