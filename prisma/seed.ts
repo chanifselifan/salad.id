@@ -92,7 +92,10 @@ async function main() {
     await prisma.salad.upsert({
       where: { slug: salad.slug },
       update: {},
-      create: salad
+      create: {
+        ...salad,
+        ingredients: salad.ingredients.join(', ') 
+      }
     })
   }
 
