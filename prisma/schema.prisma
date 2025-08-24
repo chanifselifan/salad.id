@@ -42,7 +42,7 @@ model User {
   image         String?
   phone         String?
   address       String?
-  password      String?
+  password      String
   
   accounts Account[]
   sessions Session[]

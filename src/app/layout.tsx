@@ -1,8 +1,8 @@
 import './globals.css';
 import { Inter } from 'next/font/google';
 import Script from 'next/script';
-import { SessionProvider } from 'next-auth/react';
 import NextAuthProvider from '@/components/providers/SessionProvider';
+
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
@@ -22,8 +22,11 @@ export default function RootLayout({
           {children}
         </NextAuthProvider>
         <Script
-          src="https://app.sandbox.midtrans.com/snap/snap.js"
-          data-client-key="YOUR_MIDTRANS_CLIENT_KEY" // Ganti dengan Client Key Anda
+          src={process.env.MIDTRANS_IS_PRODUCTION === 'true' 
+            ? "https://app.midtrans.com/snap/snap.js" 
+            : "https://app.sandbox.midtrans.com/snap/snap.js"
+          }
+          data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || process.env.MIDTRANS_CLIENT_KEY}
           strategy="afterInteractive"
         />
       </body>

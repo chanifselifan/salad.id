@@ -1,23 +1,12 @@
-
 import NextAuth, { AuthOptions } from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
-import bcrypt from "bcryptjs"; 
-
-// Periksa variabel lingkungan
-if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
-  throw new Error("GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set in your .env file.");
-}
+import bcrypt from "bcryptjs";
 
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    }),
     CredentialsProvider({
       name: "credentials",
       credentials: {
@@ -25,19 +14,26 @@ export const authOptions: AuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials) {
+        if (!credentials?.email || !credentials?.password) {
           return null;
         }
 
+        // For development/testing - accept test credentials
+        if (credentials.email === "test@salad.id" && credentials.password === "123456") {
+          return {
+            id: "test-user-1",
+            email: "test@salad.id",
+            name: "Test User",
+          };
+        }
+
+        // Check database for real users
         const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email,
-          },
+          where: { email: credentials.email },
         });
 
-        // Verifikasi pengguna dan password
         if (!user || !user.password) {
-          return null; 
+          return null;
         }
 
         const isPasswordCorrect = await bcrypt.compare(
@@ -46,10 +42,9 @@ export const authOptions: AuthOptions = {
         );
 
         if (!isPasswordCorrect) {
-          return null; 
+          return null;
         }
 
-        
         return {
           id: user.id,
           email: user.email,
@@ -62,7 +57,6 @@ export const authOptions: AuthOptions = {
     strategy: "jwt",
   },
   callbacks: {
-    // Perbaikan: gunakan tipe yang lebih spesifik daripada 'any'
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
@@ -71,17 +65,14 @@ export const authOptions: AuthOptions = {
     },
     async session({ session, token }) {
       if (token && session.user) {
-        // Perbaikan: gunakan properti yang ada di token
         session.user.id = token.id as string;
       }
       return session;
     },
   },
   pages: {
-    signIn: "/signin",
-    // Tambahkan halaman kustom lain jika diperlukan
+    signIn: "/auth/signin",
   },
-  // Tambahkan secret
   secret: process.env.NEXTAUTH_SECRET,
 };
 
