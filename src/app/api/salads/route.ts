@@ -1,89 +1,87 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-// Dummy data for now (later will come from database)
-const dummySalads = [
-  {
-    id: '1',
-    name: 'Salad Caesar Klasik',
-    slug: 'caesar-classic',
-    description: 'Selada romaine segar, crouton, keju parmesan, dan saus Caesar creamy.',
-    price: 55000,
-    imageUrl: '/images/salads/caesar.jpg',
-    ingredients: ['Selada romaine', 'crouton', 'keju parmesan', 'saus Caesar'],
-    calories: 320,
-    isVegan: false,
-    isGlutenFree: false,
-    isAvailable: true
-  },
-  {
-    id: '2',
-    name: 'Salad Yunani',
-    slug: 'greek-salad',
-    description: 'Tomat, timun, paprika, bawang merah, zaitun, dan keju feta dengan saus vinaigrette.',
-    price: 50000,
-    imageUrl: '/images/salads/greek.jpg',
-    ingredients: ['Tomat', 'timun', 'paprika', 'keju feta', 'zaitun', 'saus vinaigrette'],
-    calories: 280,
-    isVegan: false,
-    isGlutenFree: true,
-    isAvailable: true
-  },
-  {
-    id: '3',
-    name: 'Salad Ayam Panggang',
-    slug: 'grilled-chicken-salad',
-    description: 'Dada ayam panggang, selada, tomat ceri, alpukat, dan saus honey mustard.',
-    price: 65000,
-    imageUrl: '/images/salads/grilled-chicken.jpg',
-    ingredients: ['Dada ayam panggang', 'selada', 'tomat ceri', 'alpukat', 'saus honey mustard'],
-    calories: 420,
-    isVegan: false,
-    isGlutenFree: true,
-    isAvailable: true
-  },
-  {
-    id: '4',
-    name: 'Salad Quinoa',
-    slug: 'quinoa-salad',
-    description: 'Quinoa, buncis hitam, jagung, alpukat, paprika, dengan saus lime cilantro.',
-    price: 60000,
-    imageUrl: '/images/salads/quinoa.jpg',
-    ingredients: ['Quinoa', 'buncis hitam', 'jagung', 'alpukat', 'paprika', 'saus lime cilantro'],
-    calories: 380,
-    isVegan: true,
-    isGlutenFree: true,
-    isAvailable: true
-  },
-  {
-    id: '5',
-    name: 'Salad Buah Tropis',
-    slug: 'tropical-fruit-salad',
-    description: 'Campuran buah-buahan segar seperti mangga, nanas, dan kiwi dengan saus yoghurt.',
-    price: 45000,
-    imageUrl: '/images/salads/tropical-fruit.jpg',
-    ingredients: ['Mangga', 'nanas', 'kiwi', 'saus yoghurt'],
-    calories: 220,
-    isVegan: false,
-    isGlutenFree: true,
-    isAvailable: true
-  }
-]
-
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    // For now, return dummy data
-    // Later you can fetch from database:
-    // const salads = await prisma.salad.findMany({
-    //   include: { category: true }
-    // })
+    const { searchParams } = new URL(request.url)
+    const categoryId = searchParams.get('category')
+    
+    // Fetch salads from database
+    const salads = await prisma.salad.findMany({
+      where: {
+        isAvailable: true,
+        ...(categoryId && { categoryId })
+      },
+      include: {
+        category: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
+
+    // Transform ingredients from string to array
+    const transformedSalads = salads.map(salad => ({
+      ...salad,
+      ingredients: salad.ingredients ? salad.ingredients.split(', ') : []
+    }))
     
     return NextResponse.json({
       success: true,
-      data: dummySalads
+      data: transformedSalads
     })
   } catch (error) {
     console.error('Error fetching salads:', error)
+    return NextResponse.json(
+      { 
+        success: false,
+        error: 'Internal server error',
+        message: 'Failed to fetch salads'
+      },
+      { status: 500 }
+    )
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json()
+    const { name, slug, description, price, imageUrl, ingredients, calories, isVegan, isGlutenFree, categoryId } = body
+
+    // Validation
+    if (!name || !slug || !price || !categoryId) {
+      return NextResponse.json(
+        { error: 'Name, slug, price, and categoryId are required' },
+        { status: 400 }
+      )
+    }
+
+    // Create salad
+    const salad = await prisma.salad.create({
+      data: {
+        name,
+        slug,
+        description,
+        price: parseInt(price),
+        imageUrl,
+        ingredients: Array.isArray(ingredients) ? ingredients.join(', ') : ingredients,
+        calories: calories ? parseInt(calories) : null,
+        isVegan: Boolean(isVegan),
+        isGlutenFree: Boolean(isGlutenFree),
+        categoryId
+      },
+      include: {
+        category: true
+      }
+    })
+
+    return NextResponse.json({
+      success: true,
+      data: salad
+    }, { status: 201 })
+
+  } catch (error) {
+    console.error('Error creating salad:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
