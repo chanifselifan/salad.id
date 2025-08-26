@@ -12,7 +12,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "db:reset": "prisma migrate reset --force",
-    "setup":"npm run db:generate && npm run db:push && npm run db:seed"
+    "setup": "npm run db:generate && npm run db:push && npm run db:seed"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -40,12 +40,12 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "autoprefixer": "^10.0.1",
     "eslint": "^9",
     "eslint-config-next": "15.4.2",
+    "postcss": "^8",
     "tailwindcss": "^4",
-    "typescript": "^5",
-    "autoprefixer": "^10.0.1",
-    "postcss": "^8",  
-     "tsx": "^4.6.0"  
+    "tsx": "^4.6.0",
+    "typescript": "^5"
   }
 }
