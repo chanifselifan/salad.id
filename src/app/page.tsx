@@ -26,7 +26,7 @@ export default function HomePage() {
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-3 sm:mb-4 tracking-tight text-shadow animate-slide-in-left">
             <span className="text-deep-teal">Selamat Datang di</span>
             <br />
-            <span className="bg-gradient-primary bg-clip-text text-transparent">Salad.id</span>
+            <span className=" bg-clip-text text-transparent">Salad.id</span>
           </h1>
           
           {/* Subtitle - Responsive text */}
@@ -37,7 +37,7 @@ export default function HomePage() {
           </p>
           
           {/* CTA Buttons - Responsive layout */}
-          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 w-full max-w-md sm:max-w-none mx-auto animate-fade-in">
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 w-full max-w-md sm:max-w-none mx-auto animate-fade-in items-center justify-center">
             <Link
               href="/menu"
               className="btn btn-primary text-base sm:text-lg px-6 sm:px-8 md:px-10 py-3 sm:py-4"
