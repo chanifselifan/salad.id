@@ -63,7 +63,7 @@ const AppHeader: React.FC = () => {
               {[
                 { href: '/', label: 'Beranda' },
                 { href: '/menu', label: 'Menu' },
-                { href: '/about', label: 'Tentang' },
+                { href: '/about', label: 'Tentang' }, // Pastikan ini ada
                 { href: '/contact', label: 'Kontak' }
               ].map((item) => (
                 <Link
@@ -161,7 +161,7 @@ const AppHeader: React.FC = () => {
               {[
                 { href: '/', label: 'Beranda', icon: '🏠' },
                 { href: '/menu', label: 'Menu', icon: '🥗' },
-                { href: '/about', label: 'Tentang', icon: '📖' },
+                { href: '/about', label: 'Tentang', icon: '📖' }, // Pastikan ini ada
                 { href: '/contact', label: 'Kontak', icon: '📞' }
               ].map((item) => (
                 <Link

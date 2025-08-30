@@ -28,12 +28,11 @@ export default function RootLayout({
         <NextAuthProvider>
           {children}
         </NextAuthProvider>
-        <Script
-          src={midtransSnapUrl}
-          data-client-key={midtransClientKey}
-          strategy="afterInteractive"
-        />
+         <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY}></script>
+
+       
       </body>
+
     </html>
   );
 }

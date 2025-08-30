@@ -3,58 +3,15 @@ import Image from "next/image";
 import Link from "next/link";
 import AppHeader from "@/components/layout/AppHeader";
 import AppFooter from "@/components/layout/AppFooter";
+import {WelcomeSection} from "@/components/layout/WelcomeSection"; // import WelcomeSection
 
 export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-hero">
       <AppHeader />
       <main className="flex-1">
-        {/* Hero Section - Fully Responsive */}
-        <section className="relative flex flex-col items-center justify-center pt-12 sm:pt-16 md:pt-20 lg:pt-24 pb-12 sm:pb-16 md:pb-20 px-4 text-center overflow-hidden">
-          {/* Animated Background Elements */}
-          <div className="absolute left-[-30px] sm:left-[-60px] top-[-30px] sm:top-[-60px] w-36 h-36 sm:w-72 sm:h-72 bg-lime-green/20 rounded-full blur-2xl sm:blur-3xl -z-10 animate-pulse-slow" />
-          <div className="absolute right-[-40px] sm:right-[-80px] bottom-[-40px] sm:bottom-[-80px] w-48 h-48 sm:w-96 sm:h-96 bg-deep-teal/20 rounded-full blur-2xl sm:blur-3xl -z-10 animate-float" />
-          
-          {/* Logo - Responsive sizing */}
-          <div className="mb-6 sm:mb-8 animate-fade-in">
-            <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 mx-auto bg-gradient-primary rounded-full flex items-center justify-center shadow-salad">
-              <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">S</span>
-            </div>
-          </div>
-          
-          {/* Heading - Responsive typography */}
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-3 sm:mb-4 tracking-tight text-shadow animate-slide-in-left">
-            <span className="text-deep-teal">Selamat Datang di</span>
-            <br />
-            <span className=" bg-clip-text text-transparent">Salad.id</span>
-          </h1>
-          
-          {/* Subtitle - Responsive text */}
-          <p className="text-base sm:text-lg md:text-xl text-dark-grey-text mb-6 sm:mb-8 md:mb-10 max-w-sm sm:max-w-lg md:max-w-2xl mx-auto leading-relaxed animate-slide-in-right">
-            Nikmati salad sehat, segar, dan lezat setiap hari.
-            <br className="hidden sm:inline" />
-            <span className="block sm:inline mt-1 sm:mt-0">Pesan dengan mudah, dikirim langsung ke pintu Anda!</span>
-          </p>
-          
-          {/* CTA Buttons - Responsive layout */}
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 w-full max-w-md sm:max-w-none mx-auto animate-fade-in items-center justify-center">
-            <Link
-              href="/menu"
-              className="btn btn-primary text-base sm:text-lg px-6 sm:px-8 md:px-10 py-3 sm:py-4"
-            >
-              <span>🥗</span>
-              Lihat Menu Salad
-            </Link>
-            <Link
-              href="/about"
-              className="btn btn-outline text-base sm:text-lg px-6 sm:px-8 md:px-10 py-3 sm:py-4"
-            >
-              <span>📖</span>
-              Tentang Kami
-            </Link>
-          </div>
-        </section>
-
+        {/* Welcome Section */}
+        <WelcomeSection />
         {/* Features Section - Enhanced Grid */}
         <section className="py-12 sm:py-16 md:py-20">
           <div className="container mx-auto px-4">
@@ -64,7 +21,8 @@ export default function HomePage() {
                 Kenapa <span className="text-lime-green">Salad.id</span>?
               </h2>
               <p className="text-sm sm:text-base md:text-lg text-dark-grey-text max-w-2xl mx-auto">
-                Kami berkomitmen memberikan yang terbaik untuk gaya hidup sehat Anda
+                Kami berkomitmen memberikan yang terbaik untuk gaya hidup sehat
+                Anda
               </p>
             </div>
 
@@ -74,25 +32,29 @@ export default function HomePage() {
                 {
                   icon: "🌱",
                   title: "Bahan Segar",
-                  description: "Dipilih setiap hari dengan kualitas terbaik dari petani lokal"
+                  description:
+                    "Dipilih setiap hari dengan kualitas terbaik dari petani lokal",
                 },
                 {
                   icon: "🎨",
                   title: "Menu Variatif",
-                  description: "Lebih dari 20+ varian salad dengan topping yang bisa disesuaikan"
+                  description:
+                    "Lebih dari 20+ varian salad dengan topping yang bisa disesuaikan",
                 },
                 {
                   icon: "🚚",
                   title: "Pengiriman Cepat",
-                  description: "Pesan mudah, pengiriman dalam 30-60 menit ke seluruh Jakarta"
+                  description:
+                    "Pesan mudah, pengiriman dalam 30-60 menit ke seluruh Jakarta",
                 },
                 {
                   icon: "💚",
                   title: "Hidup Sehat",
-                  description: "Cocok untuk diet, program detox, dan gaya hidup aktif"
-                }
+                  description:
+                    "Cocok untuk diet, program detox, dan gaya hidup aktif",
+                },
               ].map((feature, index) => (
-                <div 
+                <div
                   key={index}
                   className="card p-4 sm:p-6 text-center group animate-fade-in"
                   style={{ animationDelay: `${index * 0.1}s` }}
@@ -128,25 +90,29 @@ export default function HomePage() {
                     {
                       icon: "✨",
                       title: "Bahan segar & berkualitas setiap hari",
-                      description: "Langsung dari kebun ke meja Anda"
+                      description: "Langsung dari kebun ke meja Anda",
                     },
                     {
                       icon: "🎯",
                       title: "Menu variatif & bisa custom topping",
-                      description: "Sesuaikan dengan selera dan kebutuhan diet"
+                      description: "Sesuaikan dengan selera dan kebutuhan diet",
                     },
                     {
                       icon: "⚡",
                       title: "Pesan mudah, pengiriman cepat",
-                      description: "Aplikasi user-friendly dengan tracking real-time"
+                      description:
+                        "Aplikasi user-friendly dengan tracking real-time",
                     },
                     {
                       icon: "🏃‍♀️",
                       title: "Cocok untuk diet & gaya hidup sehat",
-                      description: "Diformulasi oleh ahli gizi berpengalaman"
-                    }
+                      description: "Diformulasi oleh ahli gizi berpengalaman",
+                    },
                   ].map((item, index) => (
-                    <div key={index} className="flex items-start gap-3 sm:gap-4 group">
+                    <div
+                      key={index}
+                      className="flex items-start gap-3 sm:gap-4 group"
+                    >
                       <div className="text-xl sm:text-2xl transform group-hover:scale-125 transition-transform duration-300">
                         {item.icon}
                       </div>
@@ -172,16 +138,19 @@ export default function HomePage() {
                       alt="Salad Segar dan Lezat"
                       className="w-full h-full object-cover rounded-3xl shadow-2xl border-4 border-lime-green/30"
                     />
-                    
+
                     {/* Floating Elements */}
                     <div className="absolute -top-4 -right-4 w-16 h-16 sm:w-20 sm:h-20 bg-gradient-primary rounded-full flex items-center justify-center shadow-lg animate-float">
                       <span className="text-xl sm:text-2xl">🥗</span>
                     </div>
-                    <div className="absolute -bottom-4 -left-4 w-12 h-12 sm:w-16 sm:h-16 bg-gradient-secondary rounded-full flex items-center justify-center shadow-lg animate-float" style={{animationDelay: '1s'}}>
+                    <div
+                      className="absolute -bottom-4 -left-4 w-12 h-12 sm:w-16 sm:h-16 bg-gradient-secondary rounded-full flex items-center justify-center shadow-lg animate-float"
+                      style={{ animationDelay: "1s" }}
+                    >
                       <span className="text-lg sm:text-xl">💚</span>
                     </div>
                   </div>
-                  
+
                   {/* Decorative ring */}
                   <div className="absolute -inset-8 rounded-3xl border-4 border-lime-green/20 animate-pulse-slow" />
                 </div>
@@ -198,9 +167,13 @@ export default function HomePage() {
                 { number: "1000+", label: "Pelanggan Puas" },
                 { number: "50+", label: "Varian Menu" },
                 { number: "99%", label: "Rating Kepuasan" },
-                { number: "30", label: "Menit Pengiriman" }
+                { number: "30", label: "Menit Pengiriman" },
               ].map((stat, index) => (
-                <div key={index} className="text-center animate-fade-in" style={{ animationDelay: `${index * 0.2}s` }}>
+                <div
+                  key={index}
+                  className="text-center animate-fade-in"
+                  style={{ animationDelay: `${index * 0.2}s` }}
+                >
                   <div className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 sm:mb-2">
                     {stat.number}
                   </div>
@@ -220,13 +193,11 @@ export default function HomePage() {
               Siap untuk Hidup Lebih Sehat?
             </h2>
             <p className="text-base sm:text-lg text-dark-grey-text mb-6 sm:mb-8 max-w-2xl mx-auto">
-              Mulai perjalanan hidup sehat Anda hari ini dengan menu salad pilihan terbaik
+              Mulai perjalanan hidup sehat Anda hari ini dengan menu salad
+              pilihan terbaik
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md sm:max-w-none mx-auto">
-              <Link
-                href="/menu"
-                className="btn btn-primary text-lg px-8 py-4"
-              >
+              <Link href="/menu" className="btn btn-primary text-lg px-8 py-4">
                 Pesan Sekarang
               </Link>
               <Link

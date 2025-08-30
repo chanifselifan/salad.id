@@ -3,21 +3,25 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function main() {
+  console.log('🌱 Starting database seed...')
+
+  // Clear existing data first
+  await prisma.orderItem.deleteMany()
+  await prisma.order.deleteMany()
+  await prisma.salad.deleteMany()
+  await prisma.category.deleteMany()
+
   // Create categories
-  const saladCategory = await prisma.category.upsert({
-    where: { slug: 'salads' },
-    update: {},
-    create: {
-      name: 'Salads',
-      slug: 'salads',
+  const saladCategory = await prisma.category.create({
+    data: {
+      name: 'Fresh Salads',
+      slug: 'fresh-salads',
       description: 'Fresh and healthy salads'
     }
   })
 
-  const fruitCategory = await prisma.category.upsert({
-    where: { slug: 'fruit-salads' },
-    update: {},
-    create: {
+  const fruitCategory = await prisma.category.create({
+    data: {
       name: 'Fruit Salads',
       slug: 'fruit-salads',
       description: 'Sweet and refreshing fruit salads'
@@ -88,18 +92,19 @@ async function main() {
     }
   ]
 
-  for (const salad of salads) {
-    await prisma.salad.upsert({
-      where: { slug: salad.slug },
-      update: {},
-      create: {
-        ...salad,
-        ingredients: salad.ingredients.join(', ') 
+  // Create each salad
+  for (const saladData of salads) {
+    await prisma.salad.create({
+      data: {
+        ...saladData,
+        ingredients: saladData.ingredients.join(', ')
       }
     })
+    console.log(`✅ Created: ${saladData.name}`)
   }
 
-  console.log('Database seeded successfully!')
+  console.log('🎉 Database seeded successfully!')
+  console.log('Available salad IDs: 1, 2, 3, 4, 5, 6')
 }
 
 main()

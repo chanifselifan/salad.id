@@ -12,7 +12,8 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "db:reset": "prisma migrate reset --force",
-    "setup": "npm run db:generate && npm run db:push && npm run db:seed"
+    "setup": "npm run db:generate && npm run db:push && npm run db:seed",
+    "postinstall": "prisma generate"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -29,7 +30,6 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-icons": "^5.5.0",
-    "tsx": "^4.20.5",
     "zod": "^4.0.17",
     "zustand": "^5.0.6"
   },
@@ -45,7 +45,7 @@
     "eslint-config-next": "15.4.2",
     "postcss": "^8",
     "tailwindcss": "^4.0.0",
-    "tsx": "^4.6.0",
+    "tsx": "^4.20.5",
     "typescript": "^5"
   }
 }

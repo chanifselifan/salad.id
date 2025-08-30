@@ -156,7 +156,7 @@ const SALAD_DATA = [
       { name: 'Quinoa Base', price: 8000 }
     ]
   }
-  // Add more salads as needed...
+
 ];
 
 // Enhanced Header Component

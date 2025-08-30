@@ -95,7 +95,7 @@ model Salad {
 }
 
 model Order {
-  id            String      @id @default(cuid())
+  id            Int      @id @default(autoincrement())
   orderNumber   String      @unique
   status        OrderStatus @default(PENDING)
   totalAmount   Int
@@ -130,8 +130,7 @@ model OrderItem {
   id       String @id @default(cuid())
   quantity Int
   price    Int    // Price at time of order
-  
-  orderId  String
+  orderId   Int 
   order    Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
   
   saladId  String
