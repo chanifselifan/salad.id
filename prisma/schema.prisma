@@ -73,7 +73,7 @@ model Category {
 }
 
 model Salad {
-  id          String    @id @default(cuid())
+  id          Int       @id @default(autoincrement())
   name        String
   slug        String    @unique
   description String?
@@ -133,7 +133,7 @@ model OrderItem {
   orderId   Int 
   order    Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
   
-  saladId  String
+  saladId  Int
   salad    Salad  @relation(fields: [saladId], references: [id])
   
   createdAt DateTime @default(now())

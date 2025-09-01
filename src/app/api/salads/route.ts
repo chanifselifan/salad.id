@@ -1,90 +1,54 @@
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+// src/app/api/salads/route.ts
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url)
-    const categoryId = searchParams.get('category')
-    
-    // Fetch salads from database
     const salads = await prisma.salad.findMany({
-      where: {
-        isAvailable: true,
-        ...(categoryId && { categoryId })
-      },
       include: {
-        category: true
+        category: {
+          select: {
+            name: true,
+            slug: true
+          }
+        }
       },
       orderBy: {
-        createdAt: 'desc'
+        createdAt: 'asc'
       }
-    })
+    });
 
-    // Transform ingredients from string to array
-    const transformedSalads = salads.map(salad => ({
-      ...salad,
-      ingredients: salad.ingredients ? salad.ingredients.split(', ') : []
-    }))
-    
-    return NextResponse.json({
-      success: true,
-      data: transformedSalads
-    })
-  } catch (error) {
-    console.error('Error fetching salads:', error)
-    return NextResponse.json(
-      { 
-        success: false,
-        error: 'Internal server error',
-        message: 'Failed to fetch salads'
-      },
-      { status: 500 }
-    )
-  }
-}
+    console.log('📡 API: Serving salads with real IDs:', salads.map(s => ({id: s.id, name: s.name})));
 
-export async function POST(request: Request) {
-  try {
-    const body = await request.json()
-    const { name, slug, description, price, imageUrl, ingredients, calories, isVegan, isGlutenFree, categoryId } = body
-
-    // Validation
-    if (!name || !slug || !price || !categoryId) {
-      return NextResponse.json(
-        { error: 'Name, slug, price, and categoryId are required' },
-        { status: 400 }
-      )
-    }
-
-    // Create salad
-    const salad = await prisma.salad.create({
-      data: {
-        name,
-        slug,
-        description,
-        price: parseInt(price),
-        imageUrl,
-        ingredients: Array.isArray(ingredients) ? ingredients.join(', ') : ingredients,
-        calories: calories ? parseInt(calories) : null,
-        isVegan: Boolean(isVegan),
-        isGlutenFree: Boolean(isGlutenFree),
-        categoryId
-      },
-      include: {
-        category: true
-      }
-    })
+    // Transform for easier frontend use
+    const formattedSalads = salads.map((salad, index) => ({
+      id: salad.id, // This is the REAL cuid
+      name: salad.name,
+      slug: salad.slug,
+      description: salad.description,
+      price: salad.price,
+      imageUrl: salad.imageUrl,
+      ingredients: salad.ingredients ? salad.ingredients.split(', ') : [],
+      calories: salad.calories,
+      isVegan: salad.isVegan,
+      isGlutenFree: salad.isGlutenFree,
+      isAvailable: salad.isAvailable,
+      category: salad.category,
+      // Add position for reference
+      position: index + 1
+    }));
 
     return NextResponse.json({
       success: true,
-      data: salad
-    }, { status: 201 })
-
+      salads: formattedSalads,
+      total: formattedSalads.length,
+      message: `Found ${formattedSalads.length} salads with real database IDs`
+    });
   } catch (error) {
-    console.error('Error creating salad:', error)
+    console.error('❌ Error fetching salads:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to fetch salads', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
-    )
+    );
   }
 }

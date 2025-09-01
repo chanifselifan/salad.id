@@ -28,7 +28,7 @@ const AppHeader: React.FC = () => {
   const [scrolled, setScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
-  const cartItemCount = items.reduce((total, item) => total + (item.quantity || 1), 0);
+  const cartItemCount = items.reduce((total: number, item: { quantity?: number }) => total + (item.quantity || 1), 0);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);

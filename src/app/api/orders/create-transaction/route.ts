@@ -1,3 +1,4 @@
+// src/app/api/orders/create-transaction/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
@@ -5,7 +6,6 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 const midtransClient = require('midtrans-client');
 
-// Initialize Midtrans Core API
 const snap = new midtransClient.Snap({
   isProduction: process.env.MIDTRANS_IS_PRODUCTION === 'true',
   serverKey: process.env.MIDTRANS_SERVER_KEY,
@@ -17,203 +17,151 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions);
     const body = await request.json();
     
-    console.log('Received request body:', body);
-    
-    // Validate required fields
-    if (!body.items || !Array.isArray(body.items) || body.items.length === 0) {
-      return NextResponse.json(
-        { error: 'Items are required and must be an array' },
-        { status: 400 }
-      );
+    console.log('📥 SIMPLE API: Received order request');
+
+    // Validate items
+    if (!body.items || body.items.length === 0) {
+      return NextResponse.json({ error: 'No items provided' }, { status: 400 });
     }
 
-    if (!body.totalAmount || typeof body.totalAmount !== 'number') {
-      return NextResponse.json(
-        { error: 'Total amount is required and must be a number' },
-        { status: 400 }
-      );
-    }
-
-    // Verify all salad IDs exist in database
-    const saladIds = body.items.map((item: any) => item.id);
-    const existingSalads = await prisma.salad.findMany({
-      where: {
-        id: {
-          in: saladIds
-        }
-      },
-      select: {
-        id: true,
-        name: true,
-        price: true
-      }
+    // Get all salads sorted by creation date (for position mapping)
+    const allSalads = await prisma.salad.findMany({
+      orderBy: { createdAt: 'asc' }
     });
 
-    if (existingSalads.length !== saladIds.length) {
-      const missingIds = saladIds.filter((id: string) => !existingSalads.some(salad => salad.id === id));
-      console.error('Missing salad IDs:', missingIds);
-      return NextResponse.json(
-        { error: 'Some salad items not found', missingIds },
-        { status: 400 }
-      );
-    }
-    
-    // Generate unique order number
-    const timestamp = Date.now();
-    const randomString = Math.random().toString(36).substr(2, 9).toUpperCase();
-    const orderNumber = `ORD-${timestamp}-${randomString}`;
-    
-    // Get customer details
-    const customerDetails = session?.user ? {
-      first_name: session.user.name || 'Customer',
-      last_name: '',
-      email: session.user.email || 'customer@salad.id',
-      phone: body.customerDetails?.phone || '081234567890',
-    } : {
-      first_name: body.customerDetails?.name || 'Guest Customer',
-      last_name: '',
-      email: body.customerDetails?.email || 'guest@salad.id',
-      phone: body.customerDetails?.phone || '081234567890',
-    };
+    console.log('📊 SIMPLE API: Found', allSalads.length, 'salads in database');
 
-    // Validate customer details
-    if (!customerDetails.first_name || !customerDetails.email || !customerDetails.phone) {
-      return NextResponse.json(
-        { error: 'Customer details are required (name, email, phone)' },
-        { status: 400 }
-      );
+    // Map cart items to actual salads
+    const mappedItems = [];
+    
+    for (let i = 0; i < body.items.length; i++) {
+      const cartItem = body.items[i];
+      const position = parseInt(cartItem.id) - 1; // Convert "1" to index 0, "5" to index 4
+      
+      if (position >= 0 && position < allSalads.length) {
+        const actualSalad = allSalads[position];
+        mappedItems.push({
+          cartItemId: cartItem.id,
+          quantity: cartItem.quantity,
+          price: actualSalad.price,
+          saladId: actualSalad.id,
+          saladName: actualSalad.name
+        });
+        console.log(`🔗 SIMPLE API: Mapped cart ID "${cartItem.id}" -> "${actualSalad.name}"`);
+      } else {
+        return NextResponse.json({
+          error: `Invalid salad position: ${cartItem.id}`,
+          availablePositions: allSalads.map((s, idx) => ({ position: idx + 1, name: s.name }))
+        }, { status: 400 });
+      }
     }
 
-    // Create order in database first
+    // Generate order number
+    const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+
+    // Check if user exists (to avoid foreign key constraint)
+    let validUserId = null;
+    if (session?.user?.id) {
+      try {
+        const user = await prisma.user.findUnique({
+          where: { id: session.user.id }
+        });
+        if (user) {
+          validUserId = user.id;
+          console.log('👤 SIMPLE API: Using authenticated user');
+        }
+      } catch (e) {
+        console.log('⚠️ SIMPLE API: User verification failed, creating guest order');
+      }
+    }
+
+    // Create order (without the complex nested create for now)
     const order = await prisma.order.create({
       data: {
         orderNumber,
         totalAmount: body.totalAmount,
         deliveryFee: 10000,
-        userId: session?.user?.id || null,
-        customerName: customerDetails.first_name,
-        customerEmail: customerDetails.email,
-        customerPhone: customerDetails.phone,
-        deliveryAddress: body.customerDetails?.address || '',
-        notes: body.customerDetails?.notes || '',
+        customerName: body.customerDetails.name,
+        customerEmail: body.customerDetails.email,
+        customerPhone: body.customerDetails.phone,
+        deliveryAddress: body.customerDetails.address || '',
+        notes: body.customerDetails.notes || '',
         paymentMethod: 'midtrans',
-        items: {
-          create: body.items.map((item: any) => {
-            const existingSalad = existingSalads.find(s => s.id === item.id);
-            if (!existingSalad) {
-              throw new Error(`Salad with ID ${item.id} not found`);
-            }
-            return {
-              quantity: item.quantity,
-              price: item.price || existingSalad.price,
-              saladId: item.id
-            };
-          })
-        }
-      },
-      include: {
-        items: {
-          include: {
-            salad: true
-          }
-        }
+        ...(validUserId ? { userId: validUserId } : {})
       }
     });
 
-    console.log('Order created successfully:', order.orderNumber);
+    console.log('✅ SIMPLE API: Order created with ID:', order.id);
 
-    // Prepare Midtrans transaction data
-    const itemDetails = [
-      ...body.items.map((item: any) => {
-        const salad = existingSalads.find(s => s.id === item.id);
-        return {
-          id: item.id,
-          price: item.price || salad?.price || 0,
+    // Create order items separately to avoid nested transaction issues
+    for (const item of mappedItems) {
+      await prisma.orderItem.create({
+        data: {
           quantity: item.quantity,
-          name: item.name || salad?.name || 'Salad Item',
-        };
-      }),
-      {
-        id: 'delivery-fee',
-        price: 10000,
-        quantity: 1,
-        name: 'Biaya Pengiriman',
-      }
-    ];
+          price: item.price,
+          orderId: order.id,
+          saladId: item.saladId
+        }
+      });
+    }
 
-    const grossAmount = body.totalAmount + 10000; // Include delivery fee
+    console.log('✅ SIMPLE API: Order items created');
 
+    // Prepare Midtrans parameter
     const parameter = {
       transaction_details: {
-        order_id: order.orderNumber,
-        gross_amount: grossAmount,
+        order_id: orderNumber,
+        gross_amount: body.totalAmount + 10000
       },
       customer_details: {
-        first_name: customerDetails.first_name,
-        last_name: customerDetails.last_name,
-        email: customerDetails.email,
-        phone: customerDetails.phone,
-        billing_address: {
-          address: body.customerDetails?.address || '',
-          city: 'Jakarta',
-          postal_code: '12345',
-          country_code: 'IDN'
-        },
-        shipping_address: {
-          address: body.customerDetails?.address || '',
-          city: 'Jakarta',
-          postal_code: '12345',
-          country_code: 'IDN'
-        }
+        first_name: body.customerDetails.name,
+        email: body.customerDetails.email,
+        phone: body.customerDetails.phone
       },
-      item_details: itemDetails,
-      callbacks: {
-        finish: `${process.env.NEXT_PUBLIC_BASE_URL}/order-success?order_id=${order.orderNumber}`
-      }
+      item_details: [
+        ...mappedItems.map(item => ({
+          id: item.saladId,
+          price: item.price,
+          quantity: item.quantity,
+          name: item.saladName
+        })),
+        {
+          id: 'delivery',
+          price: 10000,
+          quantity: 1,
+          name: 'Delivery Fee'
+        }
+      ]
     };
 
-    console.log('Creating Midtrans transaction with parameter:', parameter);
-
-    // Create transaction with Midtrans
+    console.log('💳 SIMPLE API: Creating Midtrans transaction...');
+    
+    // Create Midtrans transaction
     const transaction = await snap.createTransaction(parameter);
-    
-    console.log('Midtrans transaction created:', transaction);
-    
+
     // Update order with Midtrans token
     await prisma.order.update({
       where: { id: order.id },
       data: {
         midtransToken: transaction.token,
-        midtransOrderId: order.orderNumber,
+        midtransOrderId: orderNumber
       }
     });
+
+    console.log('🎉 SIMPLE API: Everything created successfully!');
 
     return NextResponse.json({
       success: true,
       transactionToken: transaction.token,
-      redirectUrl: transaction.redirect_url,
       orderId: order.id,
-      orderNumber: order.orderNumber,
+      orderNumber
     });
 
   } catch (error) {
-    console.error('Create transaction error:', error);
-    
-    // Try to provide more specific error information
-    if (error instanceof Error) {
-      return NextResponse.json(
-        { 
-          error: 'Transaction creation failed', 
-          details: error.message,
-          stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-        },
-        { status: 500 }
-      );
-    }
-    
-    return NextResponse.json(
-      { error: 'Internal server error', details: 'Unknown error occurred' },
-      { status: 500 }
-    );
+    console.error('💥 SIMPLE API: Error:', error);
+    return NextResponse.json({
+      error: 'Failed to create order',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }

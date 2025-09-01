@@ -3,7 +3,7 @@ declare global {
   interface Window {
     snap: {
       pay: (token: string, callbacks?: any) => void;
-      embed: (token: string, options: any) => void;
+      embed?: (token: string, options?: any) => void;
     };
   }
 }
@@ -140,13 +140,18 @@ export const embedMidtransPayment = async (
       throw new Error('Midtrans Snap is not available');
     }
 
-    window.snap.embed(transactionToken, {
-      embedId: containerId,
-      onSuccess: callbacks?.onSuccess,
-      onPending: callbacks?.onPending,
-      onError: callbacks?.onError,
-      onClose: callbacks?.onClose,
-    });
+    // Type guard to satisfy TypeScript
+    if (typeof window.snap.embed === 'function') {
+      window.snap.embed(transactionToken, {
+        embedId: containerId,
+        onSuccess: callbacks?.onSuccess,
+        onPending: callbacks?.onPending,
+        onError: callbacks?.onError,
+        onClose: callbacks?.onClose,
+      });
+    } else {
+      throw new Error('Midtrans Snap embed function is not available');
+    }
   } catch (error) {
     console.error('Midtrans embed error:', error);
     throw error;
